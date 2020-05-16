@@ -1,16 +1,123 @@
 ﻿@{
-    Layout = "~/_Layout.cshtml";
-    Page.Title = string.Format("Razor - {0}", "Ex01");
-
-    
+	Layout = "~/_Layout.cshtml";
+	Page.Title = string.Format("Razor - {0}", "Ex01 - By Shyam Mistry");
+	//if you need to have a variable for the entire page
+	//  that variable needs to be declared at a global level
+	var message = "";
+	var color = "";
+	//to access a control of your page use: Request.Form["control parameter name"]
+	//the data returned comes in as a STRING
+	var myname = Request.Form["dataentry"];
+	var thebutton = Request.Form["theButton"];
+	var choices = Request.Form["group"];
 }
 
 @section banner {
-    <div class="row">
-        <div class="col-4">
-        </div>
-        <div class="col-8 text-left">
-            <h3>@Page.Title</h3>
-        </div>
-    </div>    
+	<div class="row">
+		<div class="col-4">
+		</div>
+		<div class="col-8 text-left">
+			<h3>@Page.Title</h3>
+		</div>
+	</div>
 }
+
+@if (!IsPost) // NO Buttons Pressed
+{
+	choices = "";
+	message = "IsPost = false";
+	color = "color:green";
+}
+else // Buttons Pressed
+{
+	if (thebutton.Equals("reset"))
+	{
+		myname = "";
+		choices = "";
+		message = "Reset button pressed";
+		color = "color:green";
+	}
+	else if (thebutton.Equals("submit"))
+	{
+		if (string.IsNullOrEmpty(myname) || choices.IsEmpty())
+		{
+			if (string.IsNullOrEmpty(myname))
+			{
+				message = "Please enter a name. ";
+				color = "color:firebrick";
+			}
+			if (choices.IsEmpty())
+			{
+				choices = "";
+				message += "Are you not hungary ?";
+				color = "color:firebrick";
+			}
+		}
+		else
+		{
+			message += "Entered Name: " + myname + " Your Choices: ";
+			var choicesarray = choices.Split(',');
+			for (int i = 0; i < choicesarray.Length; i++)
+			{
+				message += @choicesarray[i] + ", ";
+				color = "color:green";
+			}
+			//for a checkbox list, your choices will be a set of strings
+			//separated by a delimiter (in this case is a comma)
+			//to divide up this set of strings use the .Split(delimiter) method
+			//to process the collection of strings in choices
+		}
+	}
+}
+
+<form id="theform" method="post">
+	<div class="row">
+		<div class="col-4 text-right">
+			<label id="label1" for="dataentry">Customer Name:</label>
+		</div>
+		<div class="col-8 text-left">
+			<input type="text" id="dataentry" name="dataentry" value="@myname" />
+		</div>
+	</div>
+	<br />
+	<div class="row">
+		<div class="col-4 text-right">
+			<label id="lblMenuGroup">Select a programming language:</label>
+		</div>
+		<div class="col-8 text-left">
+
+			<input type="checkbox" id="group" name="group" value="Steak"
+				   @(Array.IndexOf(choices.Split(','), "Steak") >=0 ? "checked" : "")/>Steak<br />
+			<input type="checkbox" id="group" name="group" value="Seafood"
+				   @(Array.IndexOf(choices.Split(','), "Seafood") >=0 ? "checked" : "")/>Seafood<br />
+			<input type="checkbox" id="group" name="group" value="Vegitables"
+				   @(Array.IndexOf(choices.Split(','), "Vegitables") >=0 ? "checked" : "")/>Vegitables<br />
+		</div>
+	</div>
+	<br />
+	<div class="row">
+		<div class="col-4 text-right">
+			<br />
+		</div>
+		<div class="col-8 text-left">
+			<button type="submit" id="theButton" name="theButton"
+					value="submit" class="btn btn-light">
+				Submit
+			</button>&nbsp;
+			<button type="submit" id="theButton" name="theButton"
+					value="reset" class="btn btn-light">
+				Reset
+			</button>
+		</div>
+	</div>
+</form>
+<br />
+<div class="row">
+	<div class="col-4">
+	</div>
+	<div class="col-8 text-left">
+		<p style=@color>
+			@message
+		</p>
+	</div>
+</div>
