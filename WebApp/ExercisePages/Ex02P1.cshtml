@@ -45,8 +45,8 @@ else  // Buttons Pressed
         {
             var db = Database.Open("CHINOOKDB");
             
-            string partialstringquery = "SELECT ArtistId, Name"
-                + "FROM Artists"
+            string partialstringquery = "SELECT ArtistId, Name "
+                + "FROM Artists "
                 + "WHERE Name LIKE @0 "
                 + "ORDER BY Name";
             var partialstringforquery = "%" + partialstring + "%";
@@ -62,10 +62,9 @@ else  // Buttons Pressed
     else if (thebutton.Equals("fetch"))
     {
         var db = Database.Open("CHINOOKDB");
-        var productquery = "SELECT ArtistId, Name"
-                + "FROM Artists"
-                + "WHERE Name LIKE @0 "
-                + "ORDER BY Name";
+        var productquery = "SELECT ArtistId, Name "
+            + "FROM Artists "
+            + "WHERE ArtistId = @0 ";
         var productresults = db.Query(productquery, choice);
         if (productresults.Count() == 0)
         {
@@ -74,7 +73,7 @@ else  // Buttons Pressed
         }
         else
         {
-            Response.Redirect("40P2PartialStringSearchToDropdownToCustomGridView.cshtml?cid=" + choice);
+            Response.Redirect("Ex02P2.cshtml?cid=" + choice);
         }
     }
 }
@@ -109,13 +108,13 @@ else  // Buttons Pressed
                 {
                     foreach (var item in partialstringproductresults)
                     {
-                        if (choice == item.ProductID.ToString())
+                        if (choice == item.ArtistId.ToString())
                         {
-                            <option value="@item.ProductID" selected>@item.ProductName</option>
+                            <option value="@item.ArtistId" selected>@item.Name</option>
                         }
                         else
                         {
-                            <option value="@item.ProductID">@item.ProductName</option>
+                            <option value="@item.ArtistId">@item.Name</option>
                         }
                     }
                 }
