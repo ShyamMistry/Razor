@@ -1,8 +1,26 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
-    Page.Title = string.Format("Razor - {0}", "Ex03");
+    Page.Title = string.Format("Razor - {0}", "Ex03 - By Shyam Mistry");
 
-    
+    var message = "";
+    var color = "";
+    var albumid = Request.Form["AlbumID"];
+    var albumTitle = Request.Form["Title"];
+    var artistid = Request.Form["ArtistId"];
+    var artistName = Request.Form["Name"];
+    var releaseYear = Request.Form["ReleaseYear"];
+    var releaseLabel = Request.Form["ReleaseLabel"];
+    var thebutton = Request.Form["theButton"];
+
+    var db = Database.Open("CHINOOKDB");
+    var artistsquery = "SELECT ArtistId, Name "
+            + "FROM Artists "
+            + "Order by Name";
+    var artistslist = db.Query(artistsquery);
+    var albumquery = @"SELECT AlbumId, Title "
+            + "FROM Albums "
+            + "Order by Title";
+    var albumlist = db.Query(albumquery);
 }
 
 @section banner {
@@ -14,3 +32,173 @@
         </div>
     </div>
 }
+
+@if (!IsPost) // NO Buttons Pressed
+{
+
+}
+else // Buttons Pressed
+{
+    try
+    {
+        if (thebutton.Equals("clear"))
+        {
+            albumid = "";
+            albumTitle = "";
+            artistid = "0";
+            releaseYear = "";
+            releaseLabel = "";
+        }
+        else if (thebutton.Equals("add"))
+        {
+            if (albumid == "")
+            {
+                message = "Album Id is required";
+                color = "color:firebrick";
+            }
+            else if (albumTitle == "")
+            {
+                message = "Album Title is required";
+                color = "color:firebrick";
+            }
+            else if (artistName == "")
+            {
+                message = "Artist Name is required";
+                color = "color:firebrick";
+            }
+            else if (releaseYear == "")
+            {
+                message = "Release year is required";
+                color = "color:firebrick";
+            }
+            else if (releaseLabel == "")
+            {
+                message = "Release Label is required";
+                color = "color:firebrick";
+            }
+            else
+            {
+                var inscommand = "INSERT INTO Albums "
+                    + "(AlbumId, Title, ReleaseYear, ArtistId"
+                    + "ReleaseLabel)"
+                    + "VALUES(@0, @1, @2, @3, @4)";
+                var rowsaffected = db.Execute(inscommand, artistName,
+                    albumid.Equals("0") ? null : albumid,
+                    artistid,
+                    releaseYear,
+                    0);
+                if (rowsaffected > 0)
+                {
+                    decimal newid = db.GetLastInsertId();
+                    productid = newid.ToString();
+                    message = "Record ADDED";
+                    color = "color:green";
+                }
+                else
+                {
+                    message = "Record NOT found";
+                    color = "color:firebrick";
+                }
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        message = "Processing error:" + @ex.Message;
+        color = "color:firebrick";
+    }
+}
+
+<form id="theForm" action="" method="post">
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblProductID" for="ProductID">Product ID</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="text" name="ProductID" value="@productid" readonly />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblProductName" for="ProductName">Product Name</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="text" name="ProductName" value="@productname" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblSupplierList" for="SupplierList">Supplier</label>
+        </div>
+        <div class="col-8 text-left">
+            <select name="SupplierList">
+                <option value="0">select...</option>
+                @foreach (var acollectionrow in supplierlist)
+                {
+                    if (acollectionrow.SupplierID.ToString() == supplierid)
+                    {
+                        <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
+                    }
+                    else
+                    {
+                        <option value="@acollectionrow[0]">@acollectionrow[1]</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblCategoryList" for="CatgoryList">Category</label>
+        </div>
+        <div class="col-8 text-left">
+            <select name="CategoryList">
+                <option value="0">select...</option>
+                @foreach (var acollectionrow in categorylist)
+                {
+                    if (acollectionrow.CategoryID.ToString() == categoryid)
+                    {
+                        <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
+                    }
+                    else
+                    {
+                        <option value="@acollectionrow[0]">@acollectionrow[1]</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblUnitPrice" for="UnitPrice">Unit Price</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="number" name="UnitPrice" value="@unitprice" step="0.01" />
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-8 text-left">
+            <button type="submit" name="theButton" id="theClear" class="btn btn-light"
+                    value="clear">
+                Clear
+            </button>&nbsp;
+            <button type="submit" name="theButton" id="theAdd" class="btn btn-light"
+                    value="add">
+                Add
+            </button>
+        </div>
+    </div>
+</form>
+<br />
+<div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-6 text-left">
+        <p style=@color>
+            @message
+        </p>
+    </div>
+</div>
