@@ -6,7 +6,7 @@
     var color = "";
     var albumid = Request.Form["AlbumID"];
     var albumTitle = Request.Form["Title"];
-    var artistid = Request.Form["ArtistId"];
+    var artistid = Request.Form["SupplierList"];
     var artistName = Request.Form["Name"];
     var releaseYear = Request.Form["ReleaseYear"];
     var releaseLabel = Request.Form["ReleaseLabel"];
@@ -46,24 +46,15 @@ else // Buttons Pressed
             albumid = "";
             albumTitle = "";
             artistid = "0";
+            artistName = "";
             releaseYear = "";
             releaseLabel = "";
         }
         else if (thebutton.Equals("add"))
         {
-            if (albumid == "")
-            {
-                message = "Album Id is required";
-                color = "color:firebrick";
-            }
-            else if (albumTitle == "")
+            if (albumTitle == "")
             {
                 message = "Album Title is required";
-                color = "color:firebrick";
-            }
-            else if (artistName == "")
-            {
-                message = "Artist Name is required";
                 color = "color:firebrick";
             }
             else if (releaseYear == "")
@@ -79,18 +70,18 @@ else // Buttons Pressed
             else
             {
                 var inscommand = "INSERT INTO Albums "
-                    + "(AlbumId, Title, ReleaseYear, ArtistId"
-                    + "ReleaseLabel)"
-                    + "VALUES(@0, @1, @2, @3, @4)";
-                var rowsaffected = db.Execute(inscommand, artistName,
-                    albumid.Equals("0") ? null : albumid,
-                    artistid,
+                    + "(Title, ArtistId, ReleaseYear, "
+                    + "ReleaseLabel) "
+                    + "VALUES(@0, @1, @2, @3)";
+                var rowsaffected = db.Execute(inscommand,
+                    albumTitle, 
+                    artistid.Equals("0") ? null : artistid,
                     releaseYear,
-                    0);
+                    releaseLabel);
                 if (rowsaffected > 0)
                 {
                     decimal newid = db.GetLastInsertId();
-                    productid = newid.ToString();
+                    albumid = newid.ToString();
                     message = "Record ADDED";
                     color = "color:green";
                 }
@@ -112,30 +103,30 @@ else // Buttons Pressed
 <form id="theForm" action="" method="post">
     <div class="row">
         <div class="col-4 text-right">
-            <label id="lblProductID" for="ProductID">Product ID</label>
+            <label id="lblProductID" for="ProductID">Album ID</label>
         </div>
         <div class="col-8 text-left">
-            <input type="text" name="ProductID" value="@productid" readonly />
+            <input type="text" name="ProductID" value="@albumid" readonly />
         </div>
     </div>
     <div class="row">
         <div class="col-4 text-right">
-            <label id="lblProductName" for="ProductName">Product Name</label>
+            <label id="lblProductName" for="Title">Album Title</label>
         </div>
         <div class="col-8 text-left">
-            <input type="text" name="ProductName" value="@productname" />
+            <input type="text" name="Title" value="@albumTitle" />
         </div>
     </div>
     <div class="row">
         <div class="col-4 text-right">
-            <label id="lblSupplierList" for="SupplierList">Supplier</label>
+            <label id="lblSupplierList" for="SupplierList">Artist</label>
         </div>
         <div class="col-8 text-left">
             <select name="SupplierList">
                 <option value="0">select...</option>
-                @foreach (var acollectionrow in supplierlist)
+                @foreach (var acollectionrow in artistslist)
                 {
-                    if (acollectionrow.SupplierID.ToString() == supplierid)
+                    if (acollectionrow.ArtistId.ToString() == artistid)
                     {
                         <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
                     }
@@ -149,31 +140,18 @@ else // Buttons Pressed
     </div>
     <div class="row">
         <div class="col-4 text-right">
-            <label id="lblCategoryList" for="CatgoryList">Category</label>
+            <label id="lblUnitPrice" for="ReleaseYear">Release Year</label>
         </div>
         <div class="col-8 text-left">
-            <select name="CategoryList">
-                <option value="0">select...</option>
-                @foreach (var acollectionrow in categorylist)
-                {
-                    if (acollectionrow.CategoryID.ToString() == categoryid)
-                    {
-                        <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
-                    }
-                    else
-                    {
-                        <option value="@acollectionrow[0]">@acollectionrow[1]</option>
-                    }
-                }
-            </select>
+            <input type="number" name="ReleaseYear" value="@releaseYear" step="0.01" />
         </div>
     </div>
     <div class="row">
         <div class="col-4 text-right">
-            <label id="lblUnitPrice" for="UnitPrice">Unit Price</label>
+            <label id="lblUnitPrice" for="ReleaseLabele">Release Label</label>
         </div>
         <div class="col-8 text-left">
-            <input type="number" name="UnitPrice" value="@unitprice" step="0.01" />
+            <input type="text" name="ReleaseLabel" value="@releaseLabel" />
         </div>
     </div>
     <br />
