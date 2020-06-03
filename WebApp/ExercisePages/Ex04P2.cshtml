@@ -1,10 +1,25 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
     Page.Title = string.Format("Razor - {0}",
-        "Ex04 Page 02");
+        "Ex04 Page 02 By Shyam Mistry");
 
+    var pid = Request.QueryString["pid"];
+    if (pid.IsEmpty())
+    {
+        Response.Redirect("Ex04P2.cshtml");
+    }
 
-    
+    var message = "";
+    var color = "";
+    var albumid = Request.Form["AlbumID"];
+    var albumTitle = Request.Form["Title"];
+    var artistid = Request.Form["SupplierList"];
+    var artistName = Request.Form["Name"];
+    var releaseYear = Request.Form["ReleaseYear"];
+    var releaseLabel = Request.Form["ReleaseLabel"];
+    var thebutton = Request.Form["theButton"];
+
+    var db = Database.Open("CHINOOKDB");
 }
 
 @section banner {
@@ -16,3 +31,239 @@
         </div>
     </div>
 }
+
+@if (!IsPost) // NO Buttons Pressed
+{
+    artistid = pid;
+    var artistsquery = "SELECT ArtistId, Name "
+            + "FROM Artists "
+            + "Order by Name";
+    var artistslist = db.Query(artistsquery);
+    var albumquery = @"SELECT AlbumId, Title, ReleaseYear, ReleaseLabel "
+            + "FROM Albums "
+            + "Where ArtistId = @0";
+    var albumlist = db.Query(albumquery, pid);
+    if (albumlist == null)
+    {
+        message = "Record NOT found";
+        color = "color: firebrick";
+    }
+    else
+    {
+        artistid = pid.ToString();
+        albumid = albumlist.AlbumID.ToString();
+        albumTitle = albumlist.Title.ToString();
+        artistName = albumlist.Name.ToString();
+        releaseYear = albumlist.ReleaseYear.ToString();
+        releaseLabel = albumlist.ReleaseLabel.ToString();
+    }
+}
+else // Buttons Pressed
+{
+    try
+    {
+        if (thebutton.Equals("back"))
+        {
+            Response.Redirect("Ex04P2.cshtml");
+        }
+        else if (thebutton.Equals("clear"))
+        {
+            albumid = "";
+            albumTitle = "";
+            artistid = "0";
+            artistName = "";
+            releaseYear = "";
+            releaseLabel = "";
+            updateDeleteEnabled = false;
+        }
+        else if (thebutton.Equals("add"))
+        {
+            if (albumTitle == "")
+            {
+                message = "Album Title is required";
+                color = "color:firebrick";
+            }
+            else if (releaseYear == "")
+            {
+                message = "Release year is required";
+                color = "color:firebrick";
+            }
+            else if (releaseLabel == "")
+            {
+                message = "Release Label is required";
+                color = "color:firebrick";
+            }
+            else
+            {
+                var inscommand = "INSERT INTO Albums "
+                    + "(Title, ArtistId, ReleaseYear, "
+                    + "ReleaseLabel) "
+                    + "VALUES(@0, @1, @2, @3)";
+                var rowsaffected = db.Execute(inscommand,
+                    albumTitle,
+                    artistid.Equals("0") ? null : artistid,
+                    releaseYear,
+                    releaseLabel);
+                if (rowsaffected > 0)
+                {
+                    decimal newid = db.GetLastInsertId();
+                    albumid = newid.ToString();
+                    message = "Record ADDED";
+                    color = "color:green";
+                }
+                else
+                {
+                    message = "Record NOT found";
+                    color = "color:firebrick";
+                }
+            }
+        }
+        else if (thebutton.Equals("update"))
+        {
+            if (albumTitle == "")
+            {
+                message = "Album Title is required";
+                color = "color:firebrick";
+            }
+            else if (releaseYear == "")
+            {
+                message = "Release year is required";
+                color = "color:firebrick";
+            }
+            else if (releaseLabel == "")
+            {
+                message = "Release Label is required";
+                color = "color:firebrick";
+            }
+            else
+            {
+                var updatecommand = "UPDATE Albums SET "
+                    + "(Title, ArtistId, ReleaseYear, "
+                    + "ReleaseLabel) "
+                    + "VALUES(@0, @1, @2, @3)";
+                var rowsaffected = db.Execute(updatecommand,
+                    albumTitle,
+                    artistid.Equals("0") ? null : artistid,
+                    releaseYear,
+                    releaseLabel);
+                if (rowsaffected > 0)
+                {
+
+                    message = "Record Updated";
+                    color = "color:green";
+                }
+                else
+                {
+                    message = "Record NOT found";
+                    color = "color:firebrick";
+                }
+            }
+        }
+        else if (thebutton.Equals("delete"))
+        {
+            var deleteStatement = "Delete Products WHERE ProductID = @0";
+            var rowsaffected = db.Execute(deleteStatement, albumid);
+            if (rowsaffected > 0)
+            {
+                message = "Record DELETED";
+                color = "color:green";
+                albumid = "";
+                albumTitle = "";
+                releaseLabel = "";
+                releaseYear = "";
+                updateDeleteEnabled = false;
+            }
+            else
+            {
+                message = "Record NOT found";
+                color = "color:firebrick";
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        message = "Processing error:" + @ex.Message;
+        color = "color:firebrick";
+    }
+}
+
+<form id="theForm" action="" method="post">
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblProductID" for="ProductID">Album ID</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="text" name="ProductID" value="@albumid" readonly />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblProductName" for="Title">Album Title</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="text" name="Title" value="@albumTitle" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblSupplierList" for="SupplierList">Artist</label>
+        </div>
+        <div class="col-8 text-left">
+            <select name="SupplierList">
+                <option value="0">select...</option>
+                @foreach (var acollectionrow in artistslist)
+                {
+                    if (acollectionrow.ArtistId.ToString() == artistid)
+                    {
+                        <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
+                    }
+                    else
+                    {
+                        <option value="@acollectionrow[0]">@acollectionrow[1]</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblUnitPrice" for="ReleaseYear">Release Year</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="number" name="ReleaseYear" value="@releaseYear" step="0.01" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4 text-right">
+            <label id="lblUnitPrice" for="ReleaseLabele">Release Label</label>
+        </div>
+        <div class="col-8 text-left">
+            <input type="text" name="ReleaseLabel" value="@releaseLabel" />
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-8 text-left">
+            <button type="submit" name="theButton" id="theClear" class="btn btn-light"
+                    value="clear">
+                Clear
+            </button>&nbsp;
+            <button type="submit" name="theButton" id="theAdd" class="btn btn-light"
+                    value="add">
+                Add
+            </button>
+        </div>
+    </div>
+</form>
+<br />
+<div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-6 text-left">
+        <p style=@color>
+            @message
+        </p>
+    </div>
+</div>
