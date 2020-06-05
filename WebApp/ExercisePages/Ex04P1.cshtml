@@ -37,16 +37,16 @@ else // Buttons Pressed
     {
         if (partialstring.IsEmpty())
         {
-            message = "Enter a artist name (or partial name).";
+            message = "Enter an Album Title (or partial name).";
             color = "color:firebrick";
         }
         else
         {
             var db = Database.Open("CHINOOKDB");
-            string partialstringquery = "SELECT ArtistId, Name "
-                + "FROM Artists "
-                + "WHERE Name LIKE @0 "
-                + "ORDER BY Name";
+            string partialstringquery = "SELECT AlbumId, Title "
+                + "FROM Albums "
+                + "WHERE Title LIKE @0 "
+                + "ORDER BY Title";
             var partialstringforquery = "%" + partialstring + "%";
             partialstringproductresults = db.Query(partialstringquery, partialstringforquery);
             if (partialstringproductresults.Count() == 0)
@@ -60,9 +60,9 @@ else // Buttons Pressed
     else if (thebutton.Equals("fetch"))
     {
         var db = Database.Open("CHINOOKDB");
-        var productquery = "SELECT ArtistId, Name "
-            + "FROM Artists "
-            + "WHERE ArtistId = @0 ";
+        var productquery = "SELECT AlbumId, Title "
+            + "FROM Albums "
+            + "WHERE AlbumId = @0 ";
         var productresults = db.Query(productquery, choice);
         if (productresults.Count() == 0)
         {
@@ -71,7 +71,7 @@ else // Buttons Pressed
         }
         else
         {
-            Response.Redirect("Ex04P2.cshtml?pid=" + choice);
+            Response.Redirect("Ex04P2.cshtml?aid=" + choice);
         }
     }
 }
@@ -97,7 +97,7 @@ else // Buttons Pressed
     <br />
     <div class="row">
         <div class="col-4 text-right">
-            <label class="label" for="CategoryList">Choose a product:</label>&nbsp;&nbsp;
+            <label class="label" for="CategoryList">Choose an Album:</label>&nbsp;&nbsp;
         </div>
         <div class="col-8 text-left">
             <select id="dropdown" name="dropdown">
@@ -106,13 +106,13 @@ else // Buttons Pressed
                 {
                     foreach (var item in partialstringproductresults)
                     {
-                        if (choice == item.ArtistId.ToString())
+                        if (choice == item.AlbumId.ToString())
                         {
-                            <option value="@item.ArtistId" selected>@item.Name</option>
+                            <option value="@item.AlbumId" selected>@item.Title</option>
                         }
                         else
                         {
-                            <option value="@item.ArtistId">@item.Name</option>
+                            <option value="@item.AlbumId">@item.Title</option>
                         }
                     }
                 }
